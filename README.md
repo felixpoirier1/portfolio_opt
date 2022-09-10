@@ -1,5 +1,5 @@
 # portfolio_opt
- ##This project strives to create an optimal portfolio from past market data.
+ ## This project strives to create an optimal portfolio from past market data.
  
  1. Choose your industry (there are 6 currently)
  2. Choose your desired return (there is currently a minor bug, I believe that the conversion to continuous compounding is not done correctly)
