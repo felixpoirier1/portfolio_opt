@@ -11,10 +11,11 @@ import numpy as np
 from math import log
 import seaborn as sns
 import matplotlib.pyplot as plt
+import yfinance as yf
 
 class Portfolio(object):
     all = []
-    def __init__(self, stocks: list, directory: str, local=True):
+    def __init__(self, stocks: list, directory = None, local=True, start_date = '2008-01-08', end_date='2022-09-19'):
         
         assert directory != "", "Sorry directory argument cannot be empty"
         
@@ -54,7 +55,9 @@ class Portfolio(object):
         
         # here is where the data retriever should be inserted
         elif local is False:
-            pass
+            for stock in self.stocks:
+                self.data[stock] = yf.Ticker(stock).history(interval='1d', start = start_date, end=end_date)
+                print(self.data[stock].head())
         
         else:
             raise ValueError(f"value for local must be a boolean, {local} is not a boolean")
@@ -80,7 +83,7 @@ class Portfolio(object):
         
         
     
-    def optimize(self):
+    def optimize(self, dayYield= 0.001):
         def createCovMat(dict_stocks):
             # première opérations consiste à soustraire de chaque rendement la moyenne des rendements
             df_var = pd.DataFrame()
@@ -93,7 +96,7 @@ class Portfolio(object):
                     pass
                 
             # le rendement de la première journée ne peux être calculé donc ces valeurs sont ignorées
-            df_var = df_var.loc[1:]
+            df_var = df_var.iloc[1:]
         
             # utilisation des arrays de numpy qui permettent de faire des calculs matriciels
             mat_var = df_var.to_numpy()
@@ -152,7 +155,7 @@ class Portfolio(object):
             
             return mat_covar_aug
         
-        def createCondVec(length, dayYield=0.001):
+        def createCondVec(length, dayYield):
             continuousYield = log(1+dayYield)
     
             # création du vecteur des valeurs des conditions de la même taille de les vecteurs r et e
@@ -200,25 +203,9 @@ def displayWeights(df):
     return sns.catplot(kind = 'bar', x='pct', y = 'index', data=df.transpose().reset_index()).set(ylabel="ticker")
 
 
-    
-print(os.listdir('STOCKS'))
-sec = input("Pick a sector : ")
-                    
-cont = True
-stock_list = [] 
-path = f'STOCKS/{sec.upper()}/'
-print(os.listdir(path))
 
-while cont:
-    choice = input("Pick a stock or stop [0]: ")
-    
-    if choice == '0':
-        cont = False
-    else:
-        stock_list.append(choice)    
-    
-    
-lol=Portfolio(stocks=stock_list, directory = path, local = True).optimize()
+stock_list = ['AAPL', 'MSFT', 'AMZN']
+lol=Portfolio(stocks=stock_list, local = False).optimize(0.001)
 
 print(lol)
 displayWeights(lol)
