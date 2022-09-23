@@ -57,7 +57,6 @@ class Portfolio(object):
         elif local is False:
             for stock in self.stocks:
                 self.data[stock] = yf.Ticker(stock).history(interval='1d', start = start_date, end=end_date)
-                print(self.data[stock].head())
         
         else:
             raise ValueError(f"value for local must be a boolean, {local} is not a boolean")
@@ -65,11 +64,13 @@ class Portfolio(object):
                 # function that returns day to day yields
         def calcYield(df):
             df['daily_return'] = (df['Close'] / df['Close'].shift(1))-1
+            df = df.dropna()
             return df  
             
         # function that returns cumulative yields
         def calcCumulYield(df):
             df['cum_return'] = (1+df['daily_return']).cumprod()
+            df = df.dropna()
             return df
             
         for i in self.data:
@@ -83,7 +84,7 @@ class Portfolio(object):
         
         
     
-    def optimize(self, dayYield= 0.001):
+    def optimize(self, dayYield= 0.001, sendstats = False):
         def createCovMat(dict_stocks):
             # première opérations consiste à soustraire de chaque rendement la moyenne des rendements
             df_var = pd.DataFrame()
@@ -91,7 +92,7 @@ class Portfolio(object):
             for i in dict_stocks:
                 # soustractions avec conditions try pour éviter les érreurs
                 try:
-                    df_var[i] = dict_stocks[i].loc[:]['daily_return'] - dict_stocks[i].loc[:]['daily_return'].mean()
+                    df_var[i] = dict_stocks[i]['daily_return'] - dict_stocks[i]['daily_return'].mean()
                 except:
                     pass
                 
@@ -112,7 +113,7 @@ class Portfolio(object):
                 try:
                     # itération dans les DataFrames pour trouver le rendement moyen de chaque action
                     # puis on le rajoute à la liste r (ne pas utiliser les index 0 puisque == NaN)
-                    r.append(dict_stocks[i].loc[1:]['daily_return'].mean())
+                    r.append(dict_stocks[i]['daily_return'].mean())
                 except:
                     pass
         
@@ -191,9 +192,17 @@ class Portfolio(object):
         self.covMatrix = createCovMat(self.data)
         self.vectorR = createVectorR(self.data)
         self.matCovarAug = createMatCovarAug(self.covMatrix, self.vectorR, self.data)
-        self.vectorConditions = createCondVec(len(self.matCovarAug))
+        self.vectorConditions = createCondVec(len(self.matCovarAug),dayYield)
         self.vectorWeight = createWeightVector(self.matCovarAug, self.vectorConditions)
         
+        if sendstats:
+
+            rendement_portfolio = np.matmul(self.vectorR, np.transpose(self.vectorWeight)).iloc[0]['pct']
+            variance_portfolio = np.matmul(np.matmul(self.vectorWeight, self.covMatrix), np.transpose(self.vectorWeight)).iloc[0][0]
+            print(variance_portfolio)
+            stats = {'yield': rendement_portfolio, 'variance': variance_portfolio}
+            return self.vectorWeight, stats
+
         return self.vectorWeight
 
 
@@ -204,12 +213,16 @@ def displayWeights(df):
 
 
 
-stock_list = ['AAPL', 'MSFT', 'AMZN']
-lol=Portfolio(stocks=stock_list, local = False).optimize(0.001)
 
-print(lol)
-displayWeights(lol)
-plt.show()
+
+if __name__ == '__main__':
+    stock_list = ['AAPL', 'MSFT', 'AMZN', 'GOOG']
+    weights, stats =Portfolio(stocks=stock_list, local = False).optimize(0.001, sendstats=True)
+
+    print(weights)
+    print(stats)
+    #displayWeights(lol)
+    #plt.show()
 
 
 
