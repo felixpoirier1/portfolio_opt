@@ -221,6 +221,7 @@ if __name__ == '__main__':
 
     print(weights)
     print(stats)
+
     #displayWeights(lol)
     #plt.show()
 
