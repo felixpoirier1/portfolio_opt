@@ -192,13 +192,15 @@ class Portfolio(object):
         self.covMatrix = createCovMat(self.data)
         self.vectorR = createVectorR(self.data)
         self.matCovarAug = createMatCovarAug(self.covMatrix, self.vectorR, self.data)
-        self.vectorConditions = createCondVec(len(self.matCovarAug),dayYield)
+        self.vectorConditions = createCondVec(len(self.matCovarAug), dayYield)
         self.vectorWeight = createWeightVector(self.matCovarAug, self.vectorConditions)
         
         if sendstats:
-
-            rendement_portfolio = np.matmul(self.vectorR, np.transpose(self.vectorWeight)).iloc[0]['pct']
-            variance_portfolio = np.matmul(np.matmul(self.vectorWeight, self.covMatrix), np.transpose(self.vectorWeight)).iloc[0][0]
+            print(self.vectorR)
+            print(self.vectorWeight)
+            arrWeight = np.array(self.vectorWeight)
+            rendement_portfolio = np.matmul(self.vectorR, np.transpose(arrWeight))[0]
+            variance_portfolio = np.matmul(np.matmul(arrWeight, self.covMatrix), np.transpose(arrWeight))[0][0]
             print(variance_portfolio)
             stats = {'yield': rendement_portfolio, 'variance': variance_portfolio}
             return self.vectorWeight, stats
@@ -216,14 +218,14 @@ def displayWeights(df):
 
 
 if __name__ == '__main__':
-    stock_list = ['AAPL', 'MSFT', 'AMZN', 'GOOG']
+    stock_list = ['AAPL', 'MSFT']
     weights, stats =Portfolio(stocks=stock_list, local = False).optimize(0.001, sendstats=True)
 
     print(weights)
     print(stats)
 
-    #displayWeights(lol)
-    #plt.show()
+    displayWeights(weights)
+    plt.show()
 
 
 
