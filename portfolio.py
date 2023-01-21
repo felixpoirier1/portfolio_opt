@@ -15,7 +15,7 @@ import yfinance as yf
 
 class Portfolio(object):
     all = []
-    def __init__(self, stocks: list, directory = None, local=True, start_date = '2008-01-08', end_date='2022-09-19'):
+    def __init__(self, stocks: list, directory = None, local=True, start_date = '2018-01-08', end_date='2022-09-19'):
         
         assert directory != "", "Sorry directory argument cannot be empty"
         
@@ -199,7 +199,7 @@ class Portfolio(object):
             print(self.vectorR)
             print(self.vectorWeight)
             arrWeight = np.array(self.vectorWeight)
-            rendement_portfolio = np.matmul(self.vectorR, np.transpose(arrWeight))[0]
+            rendement_portfolio = np.matmul(self.vectorR, np.transpose(arrWeight))[0][0]
             variance_portfolio = np.matmul(np.matmul(arrWeight, self.covMatrix), np.transpose(arrWeight))[0][0]
             print(variance_portfolio)
             stats = {'yield': rendement_portfolio, 'variance': variance_portfolio}
@@ -218,8 +218,8 @@ def displayWeights(df):
 
 
 if __name__ == '__main__':
-    stock_list = ['AAPL', 'MSFT']
-    weights, stats =Portfolio(stocks=stock_list, local = False).optimize(0.001, sendstats=True)
+    stock_list = ['AMD', 'INTC', 'TSLA', 'TM']
+    weights, stats =Portfolio(stocks=stock_list, local = False).optimize(0.0001, sendstats=True)
 
     print(weights)
     print(stats)
